@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+        }
+        .tab-button {
+            transition: all 0.3s ease-in-out;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button:hover {
+            transform: translateY(-2px);
+        }
+        .tab-button.active {
+            border-bottom: 2px solid #4F46E5;
+            color: #4F46E5;
+        }
+        .content-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        #content {
+            flex-grow: 1;
+        }
+
+        iframe {
+          width: 100vw;
+          height: 95vh;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-container bg-white">
+        <div id="tabBar" class="flex bg-gray-50 px-6 py-3 border-b border-gray-200"></div>
+        <div id="content"></div>
+    </div>
+
+    <script>
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        function getDomainName(url) {
+            try {
+                const hostname = new URL(url).hostname;
+                const parts = hostname.split('.');
+                // Remove the top-level domain (last part) and take up to 7 characters
+                return parts.slice(0, -1).join('.').substring(0, 9);
+            } catch (error) {
+                return url.substring(0, 7);
+            }
+        }
+
+        function createTab(url, index) {
+            const tab = document.createElement('button');
+            const domain = getDomainName(url);
+            tab.textContent = domain.charAt(0) + domain.slice(1);
+            tab.className = 'tab-button px-4 py-2 text-gray-600 hover:text-gray-900 focus:outline-none text-sm font-medium';
+            tab.onclick = () => switchTab(index);
+            return tab;
+        }
+
+        function createIframe(url) {
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.className = 'w-full h-full tab-content';
+            return iframe;
+        }
+
+        function switchTab(index) {
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('#tabBar button').forEach(tab => tab.classList.remove('active'));
+            
+            document.querySelector(`.tab-content:nth-child(${index + 1})`).classList.add('active');
+            document.querySelector(`#tabBar button:nth-child(${index + 1})`).classList.add('active');
+        }
+
+        const urlsParam = getUrlParameter('urls');
+        let urls = urlsParam ? JSON.parse(urlsParam) : ['https://www.google.com', 'https://www.bing.com'];
+
+        const tabBar = document.getElementById('tabBar');
+        const content = document.getElementById('content');
+
+        urls.forEach((url, index) => {
+            tabBar.appendChild(createTab(url, index));
+            content.appendChild(createIframe(url));
+        });
+
+        switchTab(0);
+    </script>
+</body>
+</html>
