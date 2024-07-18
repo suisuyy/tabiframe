@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,42 +13,50 @@
             padding: 0;
             overflow: hidden;
         }
+
         .tab-content {
             display: none;
             opacity: 0;
             transition: all 0.3s ease-in-out;
         }
+
         .tab-content.active {
             display: block;
             opacity: 1;
         }
+
         .tab-button {
             transition: all 0.3s ease-in-out;
             border-bottom: 2px solid transparent;
         }
+
         .tab-button:hover {
             transform: translateY(-2px);
         }
+
         .tab-button.active {
             border-bottom: 2px solid #4F46E5;
             color: #4F46E5;
         }
+
         .content-container {
             width: 100vw;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
+
         #content {
             flex-grow: 1;
         }
 
         iframe {
-          width: 100vw;
-          height: 95vh;
+            width: 100vw;
+            height: 95vh;
         }
     </style>
 </head>
+
 <body>
     <div class="content-container bg-white">
         <div id="tabBar" class="flex bg-gray-50 px-6 py-3 border-b border-gray-200"></div>
@@ -86,13 +95,43 @@
             const iframe = document.createElement('iframe');
             iframe.src = url;
             iframe.className = 'w-full h-full tab-content';
+            const allPermissions = [
+                'accelerometer',
+                'autoplay',
+                'camera',
+                'clipboard-read',
+                'clipboard-write',
+                'encrypted-media',
+                'fullscreen',
+                'geolocation',
+                'gyroscope',
+                'magnetometer',
+                'microphone',
+                'midi',
+                'payment',
+                'picture-in-picture',
+                'sync-xhr',
+                'usb',
+                'web-share',
+                'xr-spatial-tracking'
+            ];
+
+            // Join all permissions with a semicolon
+            const allowString = allPermissions.join('; ');
+
+            // Set the allow attribute
+            iframe.setAttribute('allow', allowString);
+
+
+
+
             return iframe;
         }
 
         function switchTab(index) {
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             document.querySelectorAll('#tabBar button').forEach(tab => tab.classList.remove('active'));
-            
+
             document.querySelector(`.tab-content:nth-child(${index + 1})`).classList.add('active');
             document.querySelector(`#tabBar button:nth-child(${index + 1})`).classList.add('active');
         }
@@ -109,6 +148,46 @@
         });
 
         switchTab(0);
+
+
+        // Function to request camera and microphone permissions
+        async function requestMediaPermissions() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                console.log('Camera and microphone permissions granted');
+                // Stop the stream since we don't need it for this example
+                stream.getTracks().forEach(track => track.stop());
+            } catch (error) {
+                console.error('Error requesting media permissions:', error);
+            }
+        }
+
+        // Function to request clipboard permission
+        async function requestClipboardPermission() {
+            try {
+                const result = await navigator.permissions.query({ name: 'clipboard-read' });
+                if (result.state === 'granted' || result.state === 'prompt') {
+                    console.log('Clipboard read permission granted');
+                } else {
+                    console.log('Clipboard read permission denied');
+                }
+            } catch (error) {
+                console.error('Error requesting clipboard permission:', error);
+            }
+        }
+
+        // Function to request all permissions
+        async function requestAllPermissions() {
+            await requestMediaPermissions();
+            await requestClipboardPermission();
+        }
+
+        // Call the function to request all permissions
+        requestAllPermissions();
+
+
+
     </script>
 </body>
+
 </html>
